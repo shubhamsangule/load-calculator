@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+       <meta name="theme-color" content="#003087">
+       <meta name="apple-mobile-web-app-capable" content="yes">
+       <meta name="apple-mobile-web-app-status-bar-style" content="default">
+       <meta name="apple-mobile-web-app-title" content="Luminous Calculator">
+    <title>Luminous Load Calculator • Power Backup Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Poppins:wght@500;600&amp;display=swap');
+        
+        :root {
+            --primary: #003087;
+        }
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .heading-font {
+            font-family: 'Poppins', 'Inter', system_ui, sans-serif;
+            font-weight: 600;
+        }
+
+        .luminous-blue {
+            color: #003087;
+        }
+        
+        .luminous-orange {
+            color: #FF6B00;
+        }
+
+        .section-header {
+            font-size: 1.35rem;
+            line-height: 1.3;
+            font-weight: 600;
+            color: #0F172A;
+        }
+
+        .appliance-card {
+            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        
+        .appliance-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+        }
+
+        .load-table th {
+            background-color: #F1E7FF;
+            color: #003087;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            line-height: 1.1;
+            font-weight: 700;
+            color: #003087;
+        }
+
+        .result-card {
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border: 1px solid #E0E7FF;
+        }
+
+        .nav-active {
+            border-bottom: 3px solid #FF6B00;
+            color: #003087;
+            font-weight: 600;
+        }
+
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .step-active .step-number {
+            background-color: #003087;
+            color: white;
+        }
+        
+        .step-completed .step-number {
+            background-color: #10B981;
+            color: white;
+        }
+
+        .modern-shadow {
+            box-shadow: 0 10px 10px -3px rgb(15 23 42 / 0.05), 0 4px 6px -4px rgb(15 23 42 / 0.05);
+        }
+
+        .watt-value {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .indian-number {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .calculator-container {
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .appliance-grid {
+            scrollbar-width: thin;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background: white;
+            }
+            .result-card {
+                box-shadow: none;
+                border: 1px solid #cbd5e1;
+            }
+        }
+        
+        .tail-container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <!-- Top Navigation -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 no-print">
+        <div class="max-w-screen-2xl mx-auto">
+            <div class="px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-x-3">
+                    <!-- Luminous Style Logo -->
+                    <div class="flex items-center gap-x-2">
+                        <div class="w-11 h-11 bg-[#003087] rounded-2xl flex items-center justify-center shadow-inner">
+                            <i class="fa-solid fa-bolt-lightning text-white text-3xl"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold text-3xl tracking-tighter luminous-blue">Luminous</span>
+                            <span class="text-xs font-semibold text-orange-500 tracking-[2px] block -mt-1">POWER</span>
+                        </div>
+                    </div>
+                    <div class="hidden md:block">
+                        <span class="px-3 py-1.5 text-sm font-semibold bg-orange-100 text-orange-600 rounded-full">Load Calculator</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-x-2">
+                    <!-- Action Buttons -->
+                    <button onclick="loadSampleData()" 
+                            class="flex items-center gap-x-2 px-4 py-2 text-sm font-medium bg-white hover:bg-slate-50 border border-slate-300 rounded-2xl transition-colors">
+                        <i class="fa-solid fa-magic mr-2"></i>
+                        <span class="hidden sm:inline">Load Sample Home</span>
+                    </button>
+                    
+                    <button onclick="resetCalculator()" 
+                            class="flex items-center gap-x-2 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 border border-red-200 rounded-2xl transition-colors">
+                        <i class="fa-solid fa-undo mr-2"></i>
+                        <span class="hidden sm:inline">Reset All</span>
+                    </button>
+                    
+                    <button onclick="window.open('https://www.luminousindia.com/load-calculator', '_blank')"
+                            class="flex items-center gap-x-2 px-4 py-2 text-sm font-medium bg-white hover:bg-slate-50 border border-slate-300 rounded-2xl transition-colors">
+                        <i class="fa-solid fa-external-link-alt mr-2"></i>
+                        <span class="hidden md:inline">Official Site</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-screen-2xl mx-auto px-5 pt-8 pb-16">
+        
+        <!-- Hero Header -->
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center gap-x-2 bg-white shadow-sm border border-slate-200 rounded-3xl px-5 py-1.5 mb-4">
+                <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span class="text-sm font-semibold text-emerald-600">Trusted by 10 Lakh+ Indian Homes</span>
+            </div>
+            
+            <h1 class="text-5xl md:text-6xl font-bold tracking-tighter heading-font text-slate-900 mb-3">
+                Find the perfect<br> 
+                <span class="luminous-blue">Inverter + Battery</span> for your home
+            </h1>
+            <p class="max-w-md mx-auto text-lg text-slate-600">
+                Accurate load calculation for reliable power backup during outages. 
+                Get precise inverter VA and battery Ah recommendations.
+            </p>
+        </div>
+
+        <!-- Stepper -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-white shadow-sm border border-slate-200 rounded-3xl p-1.5 inline-flex items-center gap-x-1">
+                <div onclick="document.getElementById('loads-section').scrollIntoView({ behavior: 'smooth' })" 
+                     class="step step-active cursor-pointer px-5 py-2 rounded-3xl flex items-center gap-x-3 bg-white">
+                    <div class="step-number w-7 h-7 text-sm">1</div>
+                    <div>
+                        <span class="font-semibold text-sm">Define Load</span>
+                    </div>
+                </div>
+                
+                <div class="w-8 h-px bg-slate-300"></div>
+                
+                <div onclick="document.getElementById('results-section').scrollIntoView({ behavior: 'smooth' })" 
+                     class="step cursor-pointer px-5 py-2 rounded-3xl flex items-center gap-x-3 hover:bg-slate-50">
+                    <div class="step-number w-7 h-7 text-sm bg-slate-200 text-slate-600">2</div>
+                    <div>
+                        <span class="font-semibold text-sm">Get Recommendations</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            
+            <!-- LEFT: Define Load Requirement (Step 1) -->
+            <div id="loads-section" class="xl:col-span-7 bg-white rounded-3xl border border-slate-200 modern-shadow overflow-hidden">
+                <div class="px-7 pt-7 pb-5 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-x-3">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-2xl bg-[#003087] text-white text-sm font-bold">1</span>
+                            <h2 class="section-header">Define Load Requirement</h2>
+                        </div>
+                        <p class="text-sm text-slate-500 mt-1 ml-11">Add all appliances you want to run on backup power</p>
+                    </div>
+                    
+                    <div class="hidden md:flex items-center text-xs font-medium px-3 py-1 bg-emerald-100 text-emerald-700 rounded-2xl">
+                        <i class="fa-solid fa-info-circle mr-1.5"></i>
+                        <span>Live updating</span>
+                    </div>
+                </div>
+
+                <!-- Quick Add Section -->
+                <div class="px-7 pt-6 pb-4 bg-slate-50/70">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-semibold text-slate-700">Quick Add Common Appliances</span>
+                        <button onclick="showAddApplianceModal()" 
+                                class="text-xs flex items-center gap-x-1.5 font-medium px-3 py-1.5 bg-white border border-slate-300 hover:border-slate-400 rounded-2xl text-slate-700 transition-colors">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                            <span class="font-semibold">Custom Appliance</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Quick Add Grid -->
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2.5" id="quick-add-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Selected Loads Table -->
+                <div class="px-7 pt-2 pb-7">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="font-semibold text-slate-700">Selected Appliances</span>
+                        <span id="selected-count" class="text-xs font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">0 appliances</span>
+                    </div>
+                    
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                        <table class="w-full min-w-[640px]">
+                            <thead>
+                                <tr class="load-table">
+                                    <th class="text-left px-5 py-3.5 rounded-tl-2xl">Appliance</th>
+                                    <th class="text-center px-4 py-3.5 w-24">Wattage</th>
+                                    <th class="text-center px-4 py-3.5 w-20">Qty</th>
+                                    <th class="text-center px-4 py-3.5 w-28">Running (W)</th>
+                                    <th class="text-center px-4 py-3.5 w-24">Peak (W)</th>
+                                    <th class="text-center px-4 py-3.5 w-20">Hours/Day</th>
+                                    <th class="w-10 px-2 py-3.5 rounded-tr-2xl"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="loads-table-body" class="text-sm divide-y divide-slate-100">
+                                <!-- Populated dynamically by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Totals Row -->
+                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="bg-slate-900 text-white rounded-2xl px-5 py-4 flex justify-between items-end">
+                            <div>
+                                <div class="text-xs tracking-wider text-slate-400">TOTAL RUNNING LOAD</div>
+                                <div id="total-running-watts" class="metric-value watt-value">0</div>
+                                <div class="text-xs text-emerald-400">Watts</div>
+                            </div>
+                            <i class="fa-solid fa-plug text-4xl opacity-20"></i>
+                        </div>
+                        
+                        <div class="bg-orange-500 text-white rounded-2xl px-5 py-4 flex justify-between items-end">
+                            <div>
+                                <div class="text-xs tracking-wider text-orange-200">ESTIMATED PEAK LOAD</div>
+                                <div id="total-peak-watts" class="metric-value watt-value">0</div>
+                                <div class="text-xs text-orange-200">Watts (with surge)</div>
+                            </div>
+                            <i class="fa-solid fa-bolt text-4xl opacity-30"></i>
+                        </div>
+                        
+                        <div class="bg-white border border-slate-200 rounded-2xl px-5 py-4 flex justify-between items-end">
+                            <div>
+                                <div class="text-xs tracking-wider text-slate-500">EST. DAILY CONSUMPTION</div>
+                                <div id="daily-kwh" class="metric-value text-emerald-600 watt-value">0.0</div>
+                                <div class="text-xs text-emerald-600">kWh / day</div>
+                            </div>
+                            <i class="fa-solid fa-calendar-day text-4xl text-emerald-200"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Results & Recommendations (Step 2) -->
+            <div id="results-section" class="xl:col-span-5 bg-white rounded-3xl border border-slate-200 modern-shadow flex flex-col">
+                <div class="px-7 pt-7 pb-5 border-b border-slate-100">
+                    <div class="flex items-center gap-x-3">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-2xl bg-orange-500 text-white text-sm font-bold">2</span>
+                        <h2 class="section-header">Get Recommendations</h2>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-1 ml-11">Based on your selected loads</p>
+                </div>
+                
+                <div class="p-7 flex-1 flex flex-col">
+                    
+                    <!-- Backup Configuration -->
+                    <div class="mb-6">
+                        <label class="block text-xs font-semibold tracking-wider text-slate-500 mb-2">DESIRED BACKUP DURATION</label>
+                        
+                        <div class="flex items-center gap-x-4">
+                            <input type="range" id="backup-hours-slider" 
+                                   class="flex-1 accent-[#003087]" 
+                                   min="1" max="10" step="0.5" value="4"
+                                   oninput="updateResults()">
+                            
+                            <div class="flex items-baseline bg-slate-100 rounded-2xl px-4 py-1 min-w-[92px]">
+                                <input type="number" id="backup-hours-input" value="4" 
+                                       class="w-12 text-3xl font-bold bg-transparent focus:outline-none text-center"
+                                       oninput="syncBackupHours(); updateResults()">
+                                <span class="font-medium text-sm ml-1 text-slate-500">hrs</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-1 px-1">
+                            <div>1 hr</div>
+                            <div>4 hrs</div>
+                            <div>8 hrs</div>
+                            <div>10 hrs</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Battery Type -->
+                    <div class="mb-6">
+                        <label class="block text-xs font-semibold tracking-wider text-slate-500 mb-2">BATTERY TYPE</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div onclick="selectBatteryType('lead')" id="battery-lead"
+                                 class="cursor-pointer border-2 border-[#003087] bg-[#003087]/5 rounded-2xl p-3 text-center active:scale-[0.985] transition-all">
+                                <div class="font-semibold text-sm">Tubular Lead Acid</div>
+                                <div class="text-xs text-emerald-600 mt-0.5">Best value • 3-5 yrs life</div>
+                            </div>
+                            <div onclick="selectBatteryType('lithium')" id="battery-lithium"
+                                 class="cursor-pointer border border-slate-300 hover:border-slate-400 rounded-2xl p-3 text-center transition-all">
+                                <div class="font-semibold text-sm">Lithium-Ion (LiFePO4)</div>
+                                <div class="text-xs text-emerald-600 mt-0.5">Long life • 8-10 yrs</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Calculated Results -->
+                    <div class="flex-1">
+                        <div class="text-xs font-semibold tracking-wider text-slate-500 mb-3">RECOMMENDED SOLUTION</div>
+                        
+                        <!-- Inverter Card -->
+                        <div class="result-card border border-slate-200 rounded-3xl p-5 mb-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="text-xs text-orange-600 font-medium">INVERTER CAPACITY</div>
+                                    <div id="recommended-inverter" class="text-4xl font-bold text-[#003087] tracking-tighter">1500 VA</div>
+                                    <div id="inverter-explanation" class="text-xs text-slate-500 mt-0.5">Suitable for your peak load</div>
+                                </div>
+                                <div class="text-right">
+                                    <i class="fa-solid fa-microchip text-4xl text-orange-300"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-slate-100 text-xs">
+                                <div class="flex justify-between text-slate-600">
+                                    <span>Running capacity</span>
+                                    <span id="inverter-running" class="font-semibold">—</span>
+                                </div>
+                                <div class="flex justify-between text-slate-600 mt-px">
+                                    <span>Surge handling</span>
+                                    <span id="inverter-surge" class="font-semibold">—</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Battery Card -->
+                        <div class="result-card border border-slate-200 rounded-3xl p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="text-xs text-emerald-600 font-medium">BATTERY REQUIREMENT</div>
+                                    <div id="recommended-battery" class="text-4xl font-bold text-emerald-700 tracking-tighter">200 Ah</div>
+                                    <div id="battery-details" class="text-xs text-emerald-600 mt-0.5">at 12V system</div>
+                                </div>
+                                <div>
+                                    <i class="fa-solid fa-car-battery text-4xl text-emerald-300"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-slate-100">
+                                <div id="battery-suggestion" class="text-sm font-medium text-emerald-700"></div>
+                                <div class="text-[10px] text-emerald-600 mt-1">Recommended: Luminous ILST / IT series</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Assumptions -->
+                    <div class="mt-auto pt-4">
+                        <details class="text-xs text-slate-500">
+                            <summary class="cursor-pointer font-medium flex items-center gap-x-1 hover:text-slate-700">
+                                <i class="fa-solid fa-cog text-xs"></i> 
+                                <span>Calculation assumptions</span>
+                            </summary>
+                            <div class="mt-2 pl-5 text-[10px] leading-relaxed space-y-px text-slate-500">
+                                <div>• Power Factor: 0.80</div>
+                                <div>• Inverter Efficiency: ~85%</div>
+                                <div>• Safety margin included for future loads</div>
+                                <div>• Lead Acid DoD: 50% | Lithium DoD: 80%</div>
+                                <div class="pt-1">Results are indicative. Final sizing should be done by a Luminous expert.</div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="px-7 pb-7 pt-4 border-t border-slate-100 flex gap-x-3 no-print">
+                    <button onclick="printReport()" 
+                            class="flex-1 flex items-center justify-center gap-x-2 py-3.5 text-sm font-semibold border border-slate-300 hover:bg-slate-50 transition-colors rounded-2xl">
+                        <i class="fa-solid fa-print"></i>
+                        <span>Print Report</span>
+                    </button>
+                    
+                    <button onclick="copySummary()" 
+                            class="flex-1 flex items-center justify-center gap-x-2 py-3.5 text-sm font-semibold bg-[#003087] hover:bg-[#002266] transition-colors text-white rounded-2xl">
+                        <i class="fa-solid fa-copy"></i>
+                        <span>Copy Summary</span>
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- Additional Info / Tips -->
+        <div class="mt-8 max-w-3xl mx-auto">
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 text-sm">
+                <div class="font-semibold mb-3 flex items-center gap-x-2 text-slate-700">
+                    <i class="fa-solid fa-lightbulb text-amber-500"></i>
+                    <span>Pro Tips for Accurate Sizing</span>
+                </div>
+                <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-slate-600">
+                    <li class="flex gap-x-2"><span class="font-mono text-emerald-500 mt-px">→</span> Prioritize essential loads only (lights, fans, fridge, router, few ACs)</li>
+                    <li class="flex gap-x-2"><span class="font-mono text-emerald-500 mt-px">→</span> ACs and water pumps have high starting surge — size inverter accordingly</li>
+                    <li class="flex gap-x-2"><span class="font-mono text-emerald-500 mt-px">→</span> Use 24V or 48V system for loads above 1200W (better efficiency &amp; thinner cables)</li>
+                    <li class="flex gap-x-2"><span class="font-mono text-emerald-500 mt-px">→</span> Consider future expansion — add 20-30% extra capacity</li>
+                </ul>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- Add Custom Appliance Modal -->
+    <div id="custom-modal" onclick="if (event.target.id === 'custom-modal') hideAddApplianceModal()" 
+         class="hidden fixed inset-0 bg-black/50 z-[100] flex items-end md:items-center justify-center">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="bg-white w-full md:w-[420px] md:rounded-3xl md:m-4 rounded-t-3xl p-6 shadow-2xl">
+            
+            <div class="flex justify-between items-center mb-5">
+                <div class="font-semibold text-xl">Add Custom Appliance</div>
+                <button onclick="hideAddApplianceModal()" class="text-2xl leading-none text-slate-400 hover:text-slate-600">×</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-medium text-slate-500">APPLIANCE NAME</label>
+                    <input id="custom-name" type="text" value="Custom Device" 
+                           class="mt-1 block w-full border border-slate-300 focus:border-[#003087] rounded-2xl px-4 py-3 text-sm">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-medium text-slate-500">WATTAGE (W)</label>
+                        <input id="custom-wattage" type="number" value="500" 
+                               class="mt-1 block w-full border border-slate-300 focus:border-[#003087] rounded-2xl px-4 py-3 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium text-slate-500">QUANTITY</label>
+                        <input id="custom-qty" type="number" value="1" 
+                               class="mt-1 block w-full border border-slate-300 focus:border-[#003087] rounded-2xl px-4 py-3 text-sm">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="text-xs font-medium text-slate-500">SURGE FACTOR</label>
+                    <select id="custom-surge" class="mt-1 block w-full border border-slate-300 focus:border-[#003087] rounded-2xl px-4 py-3 text-sm">
+                        <option value="1.0">1.0 × (Resistive - Bulb, TV, Iron)</option>
+                        <option value="1.5">1.5 × (Slight surge - Fan, Cooler)</option>
+                        <option value="2.0" selected>2.0 × (Moderate - Fridge, AC, Mixer)</option>
+                        <option value="3.0">3.0 × (High surge - Pump, Washing Machine)</option>
+                    </select>
+                </div>
+                
+                <div class="pt-2">
+                    <button onclick="addCustomAppliance()" 
+                            class="w-full py-3.5 bg-[#003087] hover:bg-[#002266] transition-colors text-white font-semibold rounded-2xl text-sm flex items-center justify-center gap-x-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>ADD TO CALCULATION</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer class="text-center text-xs text-slate-400 py-8 border-t border-slate-100 no-print">
+        This is an independent educational replica of the Luminous Load Calculator.<br>
+        Not affiliated with Luminous Power Technologies. For official use, please visit 
+        <a href="https://www.luminousindia.com/load-calculator" target="_blank" class="underline">luminousindia.com</a>.<br>
+        Calculations are approximate. Always consult a certified electrician for installation.
+    </footer>
+
+    <script>
+        // Tailwind script
+        function initializeTailwind() {
+            document.documentElement.style.setProperty('--accent', '#FF6B00');
+        }
+        
+        // Appliance Database (realistic Indian home appliances)
+        let applianceDatabase = [
+            { id: 1, category: "Lighting", name: "9W LED Bulb", wattage: 9, defaultQty: 6, surgeFactor: 1.0 },
+            { id: 2, category: "Lighting", name: "20W LED Tube Light", wattage: 20, defaultQty: 4, surgeFactor: 1.0 },
+            { id: 3, category: "Fans", name: "Ceiling Fan (High Speed)", wattage: 75, defaultQty: 3, surgeFactor: 1.3 },
+            { id: 4, category: "Fans", name: "Table / Pedestal Fan", wattage: 55, defaultQty: 1, surgeFactor: 1.2 },
+            { id: 5, category: "Cooling", name: "1.5 Ton Split AC", wattage: 1750, defaultQty: 1, surgeFactor: 2.8 },
+            { id: 6, category: "Cooling", name: "Air Cooler (Desert)", wattage: 180, defaultQty: 1, surgeFactor: 1.6 },
+            { id: 7, category: "Kitchen", name: "Single Door Refrigerator", wattage: 220, defaultQty: 1, surgeFactor: 2.2 },
+            { id: 8, category: "Kitchen", name: "Mixer / Grinder", wattage: 650, defaultQty: 1, surgeFactor: 2.5 },
+            { id: 9, category: "Kitchen", name: "Microwave Oven", wattage: 950, defaultQty: 1, surgeFactor: 1.8 },
+            { id: 10, category: "Entertainment", name: "43\" Smart LED TV", wattage: 95, defaultQty: 1, surgeFactor: 1.0 },
+            { id: 11, category: "Entertainment", name: "Laptop + Charger", wattage: 65, defaultQty: 2, surgeFactor: 1.0 },
+            { id: 12, category: "Entertainment", name: "WiFi Router + Set Top Box", wattage: 25, defaultQty: 1, surgeFactor: 1.0 },
+            { id: 13, category: "Others", name: "0.5 HP Borewell Pump", wattage: 375, defaultQty: 1, surgeFactor: 3.2 },
+            { id: 14, category: "Others", name: "15-25L Geyser", wattage: 2000, defaultQty: 1, surgeFactor: 1.4 },
+            { id: 15, category: "Laundry", name: "Front Load Washing Machine", wattage: 750, defaultQty: 1, surgeFactor: 2.6 },
+            { id: 16, category: "Lighting", name: "15W LED Bulb", wattage: 15, defaultQty: 3, surgeFactor: 1.0 },
+            { id: 17, category: "Fans", name: "Exhaust Fan (Kitchen/Bath)", wattage: 35, defaultQty: 2, surgeFactor: 1.1 },
+            { id: 18, category: "Kitchen", name: "Induction Cooktop", wattage: 1800, defaultQty: 1, surgeFactor: 1.3 },
+            { id: 19, category: "Others", name: "Desktop PC + Monitor", wattage: 280, defaultQty: 1, surgeFactor: 1.2 },
+            { id: 20, category: "Cooling", name: "Window AC 1 Ton", wattage: 1250, defaultQty: 1, surgeFactor: 2.6 },
+        ];
+        
+        // Current selected loads (user's calculation)
+        let selectedLoads = [];
+        let currentBatteryType = 'lead'; // 'lead' or 'lithium'
+        
+        // Initialize everything
+        function initializeApp() {
+            initializeTailwind();
+            renderQuickAddGrid();
+            renderLoadsTable();
+            updateTotals();
+            
+            // Set default battery type
+            selectBatteryType('lead', true);
+            
+            // Sync backup hours inputs
+            const slider = document.getElementById('backup-hours-slider');
+            const input = document.getElementById('backup-hours-input');
+            
+            slider.addEventListener('input', function() {
+                input.value = this.value;
+                updateResults();
+            });
+            
+            input.addEventListener('input', function() {
+                if (parseFloat(this.value) > 10) this.value = 10;
+                if (parseFloat(this.value) < 1) this.value = 1;
+                slider.value = this.value;
+                updateResults();
+            });
+            
+            // Initial results calculation
+            setTimeout(() => {
+                updateResults();
+            }, 300);
+            
+            // Keyboard support
+            document.addEventListener('keydown', function(e) {
+                if (e.key === "?" && document.activeElement.tagName === "BODY") {
+                    e.preventDefault();
+                    showAddApplianceModal();
+                }
+            });
+            
+            // Load from localStorage if exists
+            loadFromLocalStorage();
+        }
+        
+        function renderQuickAddGrid() {
+            const container = document.getElementById('quick-add-grid');
+            container.innerHTML = '';
+            
+            // Show first 12 most common
+            const quickItems = applianceDatabase.slice(0, 14);
+            
+            quickItems.forEach(app => {
+                const div = document.createElement('div');
+                div.className = `appliance-card cursor-pointer bg-white border border-slate-200 hover:border-orange-300 rounded-2xl px-3 py-2.5 text-center text-xs transition-all active:scale-[0.985]`;
+                
+                div.innerHTML = `
+                    <div class="font-semibold text-slate-700 leading-tight">${app.name}</div>
+                    <div class="text-emerald-600 text-[10px] mt-0.5 font-medium">${app.wattage}W • +${app.defaultQty}</div>
+                `;
+                
+                div.onclick = () => addApplianceFromDatabase(app.id);
+                container.appendChild(div);
+            });
+        }
+        
+        function addApplianceFromDatabase(id) {
+            const appData = applianceDatabase.find(a => a.id === id);
+            if (!appData) return;
+            
+            // Check if already exists
+            const existing = selectedLoads.findIndex(item => item.id === id);
+            
+            if (existing !== -1) {
+                // Increase quantity
+                selectedLoads[existing].qty += 1;
+            } else {
+                selectedLoads.push({
+                    ...appData,
+                    qty: appData.defaultQty,
+                    hoursPerDay: 4 // default reasonable usage
+                });
+            }
+            
+            renderLoadsTable();
+            updateTotals();
+            saveToLocalStorage();
+        }
+        
+        function addCustomAppliance() {
+            const name = document.getElementById('custom-name').value.trim() || "Custom Appliance";
+            const wattage = parseInt(document.getElementById('custom-wattage').value) || 100;
+            const qty = parseInt(document.getElementById('custom-qty').value) || 1;
+            const surgeFactor = parseFloat(document.getElementById('custom-surge').value);
+            
+            const newId = Date.now(); // unique id
+            
+            selectedLoads.push({
+                id: newId,
+                category: "Custom",
+                name: name,
+                wattage: wattage,
+                qty: qty,
+                surgeFactor: surgeFactor,
+                hoursPerDay: 3,
+                isCustom: true
+            });
+            
+            hideAddApplianceModal();
+            renderLoadsTable();
+            updateTotals();
+            saveToLocalStorage();
+        }
+        
+        function showAddApplianceModal() {
+            document.getElementById('custom-modal').classList.remove('hidden');
+            document.getElementById('custom-modal').classList.add('flex');
+            setTimeout(() => {
+                document.getElementById('custom-name').focus();
+                document.getElementById('custom-name').select();
+            }, 150);
+        }
+        
+        function hideAddApplianceModal() {
+            const modal = document.getElementById('custom-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+        
+        function renderLoadsTable() {
+            const tbody = document.getElementById('loads-table-body');
+            tbody.innerHTML = '';
+            
+            if (selectedLoads.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `
+                    <td colspan="7" class="px-5 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center text-slate-400">
+                            <i class="fa-solid fa-plug-circle-bolt text-5xl mb-3 opacity-40"></i>
+                            <p class="font-medium">No appliances added yet</p>
+                            <p class="text-xs mt-1">Use Quick Add above or add a custom appliance</p>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(emptyRow);
+                document.getElementById('selected-count').innerHTML = `0 appliances`;
+                return;
+            }
+            
+            document.getElementById('selected-count').innerHTML = `${selectedLoads.length} appliance${selectedLoads.length > 1 ? 's' : ''}`;
+            
+            selectedLoads.forEach((item, index) => {
+                const runningWatts = item.wattage * item.qty;
+                const peakWatts = Math.round(item.wattage * item.qty * item.surgeFactor);
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-50 group';
+                
+                row.innerHTML = `
+                    <td class="px-5 py-3.5">
+                        <div class="font-medium text-sm">${item.name}</div>
+                        <div class="text-[10px] text-slate-500">${item.category}</div>
+                    </td>
+                    <td class="px-3 py-3.5">
+                        <div class="flex justify-center">
+                            <input type="number" value="${item.wattage}" 
+                                   class="w-16 text-center border border-slate-200 focus:border-orange-400 rounded-xl px-2 py-1 text-sm font-medium"
+                                   onchange="updateAppliance(${index}, 'wattage', this.value)">
+                        </div>
+                    </td>
+                    <td class="px-3 py-3.5">
+                        <div class="flex justify-center items-center gap-x-1">
+                            <button onclick="changeQty(${index}, -1)" 
+                                    class="w-7 h-7 flex items-center justify-center text-lg leading-none border border-slate-300 hover:bg-slate-100 active:bg-slate-200 rounded-xl text-slate-500">-</button>
+                            
+                            <input type="number" value="${item.qty}" 
+                                   class="w-11 text-center border border-slate-200 focus:border-orange-400 rounded-xl px-1 py-1 text-sm font-semibold"
+                                   onchange="updateAppliance(${index}, 'qty', this.value)">
+                            
+                            <button onclick="changeQty(${index}, 1)" 
+                                    class="w-7 h-7 flex items-center justify-center text-lg leading-none border border-slate-300 hover:bg-slate-100 active:bg-slate-200 rounded-xl text-slate-500">+</button>
+                        </div>
+                    </td>
+                    <td class="px-3 py-3.5 text-center">
+                        <span class="font-semibold text-emerald-700 watt-value">${runningWatts}</span>
+                    </td>
+                    <td class="px-3 py-3.5 text-center">
+                        <span class="font-semibold text-orange-600 watt-value">${peakWatts}</span>
+                    </td>
+                    <td class="px-3 py-3.5">
+                        <div class="flex justify-center">
+                            <input type="number" value="${item.hoursPerDay || 3}" step="0.5"
+                                   class="w-14 text-center border border-slate-200 focus:border-orange-400 rounded-xl px-2 py-1 text-sm"
+                                   onchange="updateAppliance(${index}, 'hoursPerDay', this.value)">
+                        </div>
+                    </td>
+                    <td class="px-2 py-3.5 text-center">
+                        <button onclick="removeAppliance(${index})" 
+                                class="text-red-400 hover:text-red-600 p-1.5 opacity-70 hover:opacity-100 transition-all">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        function updateAppliance(index, field, value) {
+            if (!selectedLoads[index]) return;
+            
+            let numValue = parseFloat(value);
+            if (isNaN(numValue)) numValue = (field === 'wattage' || field === 'qty') ? 1 : 0;
+            
+            if (field === 'wattage' || field === 'qty') {
+                numValue = Math.max(1, Math.floor(numValue));
+            } else if (field === 'hoursPerDay') {
+                numValue = Math.max(0, Math.min(24, numValue));
+            }
+            
+            selectedLoads[index][field] = numValue;
+            
+            renderLoadsTable();
+            updateTotals();
+            saveToLocalStorage();
+        }
+        
+        function changeQty(index, delta) {
+            if (!selectedLoads[index]) return;
+            selectedLoads[index].qty = Math.max(1, selectedLoads[index].qty + delta);
+            renderLoadsTable();
+            updateTotals();
+            saveToLocalStorage();
+        }
+        
+        function removeAppliance(index) {
+            selectedLoads.splice(index, 1);
+            renderLoadsTable();
+            updateTotals();
+            saveToLocalStorage();
+        }
+        
+        function updateTotals() {
+            let totalRunning = 0;
+            let totalPeak = 0;
+            let totalDailyWh = 0;
+            
+            selectedLoads.forEach(item => {
+                const running = item.wattage * item.qty;
+                totalRunning += running;
+                totalPeak += Math.round(running * item.surgeFactor);
+                
+                const hours = item.hoursPerDay || 3;
+                totalDailyWh += running * hours;
+            });
+            
+            // Update UI
+            document.getElementById('total-running-watts').innerHTML = totalRunning.toLocaleString('en-IN');
+            document.getElementById('total-peak-watts').innerHTML = totalPeak.toLocaleString('en-IN');
+            
+            const kwh = (totalDailyWh / 1000).toFixed(1);
+            document.getElementById('daily-kwh').innerHTML = kwh;
+            
+            // Update results live
+            updateResults();
+        }
+        
+        function selectBatteryType(type, initial = false) {
+            currentBatteryType = type;
+            
+            const leadEl = document.getElementById('battery-lead');
+            const lithiumEl = document.getElementById('battery-lithium');
+            
+            if (type === 'lead') {
+                leadEl.classList.add('border-[#003087]', 'bg-[#003087]/5');
+                leadEl.classList.remove('border-slate-300');
+                lithiumEl.classList.remove('border-[#003087]', 'bg-[#003087]/5');
+                lithiumEl.classList.add('border-slate-300');
+            } else {
+                lithiumEl.classList.add('border-[#003087]', 'bg-[#003087]/5');
+                lithiumEl.classList.remove('border-slate-300');
+                leadEl.classList.remove('border-[#003087]', 'bg-[#003087]/5');
+                leadEl.classList.add('border-slate-300');
+            }
+            
+            if (!initial) {
+                updateResults();
+            }
+        }
+        
+        function syncBackupHours() {
+            const slider = document.getElementById('backup-hours-slider');
+            const input = document.getElementById('backup-hours-input');
+            slider.value = input.value;
+        }
+        
+        function updateResults() {
+            // Calculate current totals
+            let totalRunning = 0;
+            let totalPeak = 0;
+            
+            selectedLoads.forEach(item => {
+                const running = item.wattage * item.qty;
+                totalRunning += running;
+                totalPeak += Math.round(running * (item.surgeFactor || 1.5));
+            });
+            
+            if (totalRunning === 0) {
+                // No load selected
+                document.getElementById('recommended-inverter').innerHTML = '—';
+                document.getElementById('inverter-explanation').innerHTML = 'Add appliances to see recommendation';
+                document.getElementById('recommended-battery').innerHTML = '—';
+                document.getElementById('battery-details').innerHTML = '';
+                document.getElementById('battery-suggestion').innerHTML = '';
+                document.getElementById('inverter-running').innerHTML = '—';
+                document.getElementById('inverter-surge').innerHTML = '—';
+                return;
+            }
+            
+            const backupHours = parseFloat(document.getElementById('backup-hours-input').value) || 4;
+            
+            // === INVERTER CALCULATION ===
+            // Power Factor ~ 0.8, add safety margin
+            const powerFactor = 0.80;
+            const safetyMargin = 1.25; // 25% headroom
+            
+            let recommendedVA = Math.ceil((totalRunning / powerFactor) * safetyMargin / 100) * 100;
+            
+            // Round to common inverter sizes available in India
+            const commonVASizes = [600, 800, 1000, 1200, 1500, 2000, 2500, 3000, 3500, 5000];
+            let inverterVA = commonVASizes.find(v => v >= recommendedVA) || Math.ceil(recommendedVA / 500) * 500;
+            
+            // Cap display
+            if (inverterVA < 800) inverterVA = 800;
+            
+            // Determine system voltage suggestion
+            let systemVoltage = 12;
+            if (totalRunning > 1400) systemVoltage = 24;
+            if (totalRunning > 3500) systemVoltage = 48;
+            
+            // Inverter explanation
+            let explanation = `Handles your peak load of ${totalPeak.toLocaleString('en-IN')}W comfortably`;
+            if (totalPeak > inverterVA * 1.8) {
+                explanation = `Consider higher capacity for high surge loads`;
+            }
+            
+            document.getElementById('recommended-inverter').innerHTML = `${inverterVA} VA`;
+            document.getElementById('inverter-explanation').innerHTML = explanation;
+            document.getElementById('inverter-running').innerHTML = `${Math.round(totalRunning / powerFactor)} VA`;
+            document.getElementById('inverter-surge').innerHTML = `${Math.round(totalPeak / 0.7)} VA (short time)`;
+            
+            // === BATTERY CALCULATION ===
+            const dod = currentBatteryType === 'lead' ? 0.50 : 0.80;
+            const efficiency = 0.85; // overall system efficiency (inverter + wiring + battery)
+            
+            // Energy required from battery (Wh)
+            const energyRequiredWh = totalRunning * backupHours;
+            
+            // Battery capacity needed (Ah)
+            let batteryAh = Math.ceil(energyRequiredWh / (systemVoltage * dod * efficiency));
+            
+            // Round nicely
+            batteryAh = Math.ceil(batteryAh / 10) * 10;
+            if (batteryAh < 80) batteryAh = 80;
+            
+            // Update UI
+            document.getElementById('recommended-battery').innerHTML = `${batteryAh} Ah`;
+            document.getElementById('battery-details').innerHTML = `at ${systemVoltage}V system • ${currentBatteryType === 'lead' ? 'Tubular Lead Acid' : 'Lithium LiFePO4'}`;
+            
+            // Battery suggestion text
+            let suggestionText = '';
+            if (systemVoltage === 12) {
+                suggestionText = `1 × ${batteryAh}Ah Luminous battery`;
+            } else if (systemVoltage === 24) {
+                const singleAh = Math.ceil(batteryAh / 2);
+                suggestionText = `2 × ${singleAh}Ah batteries (series)`;
+            } else {
+                suggestionText = `4 × ${Math.ceil(batteryAh / 4)}Ah batteries (series-parallel)`;
+            }
+            
+            document.getElementById('battery-suggestion').innerHTML = suggestionText;
+            
+            // Store for print/copy
+            window.lastCalculation = {
+                totalRunning,
+                totalPeak,
+                inverterVA,
+                batteryAh,
+                systemVoltage,
+                backupHours,
+                batteryType: currentBatteryType,
+                dailyKwh: (totalRunning * backupHours / 1000).toFixed(1)
+            };
+        }
+        
+        function printReport() {
+            if (!window.lastCalculation || selectedLoads.length === 0) {
+                alert("Please add some appliances first to generate a report.");
+                return;
+            }
+            
+            const calc = window.lastCalculation;
+            
+            const printWindow = window.open('', '_blank');
+            
+            const applianceRows = selectedLoads.map(item => {
+                const running = item.wattage * item.qty;
+                return `
+                    <tr>
+                        <td style="padding:8px 12px; border-bottom:1px solid #ddd;">${item.name}</td>
+                        <td style="padding:8px 12px; border-bottom:1px solid #ddd; text-align:center;">${item.wattage}W</td>
+                        <td style="padding:8px 12px; border-bottom:1px solid #ddd; text-align:center;">${item.qty}</td>
+                        <td style="padding:8px 12px; border-bottom:1px solid #ddd; text-align:right; font-weight:600;">${running}W</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Luminous Load Calculator Report</title>
+                    <style>
+                        body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; max-width: 820px; margin: 0 auto; color: #1e2937; }
+                        .header { display: flex; align-items: center; gap: 16px; border-bottom: 3px solid #003087; padding-bottom: 20px; margin-bottom: 30px; }
+                        .logo { width: 52px; height: 52px; background: #003087; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; }
+                        h1 { margin: 0; font-size: 26px; color: #003087; }
+                        .section { margin-bottom: 30px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th { background: #f1e7ff; color: #003087; text-align: left; padding: 10px 12px; font-size: 12px; }
+                        .metric { font-size: 42px; font-weight: 800; line-height: 1; color: #003087; }
+                        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                        .card { border: 1px solid #e2e8f0; padding: 20px; border-radius: 16px; }
+                        .footer { margin-top: 50px; font-size: 11px; color: #64748b; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div class="logo"><i class="fa-solid fa-bolt-lightning"></i></div>
+                        <div>
+                            <h1>Luminous Load Calculator</h1>
+                            <div style="color:#64748b; font-size:13px;">Power Backup Recommendation Report • ${new Date().toLocaleDateString('en-IN')}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <h2 style="font-size:15px; color:#475569; margin-bottom:12px;">SELECTED LOADS (${selectedLoads.length} appliances)</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Appliance</th>
+                                    <th style="text-align:center">Wattage</th>
+                                    <th style="text-align:center">Qty</th>
+                                    <th style="text-align:right">Running Watts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${applianceRows}
+                            </tbody>
+                        </table>
+                        
+                        <div style="margin-top:16px; display:flex; gap:30px; font-size:14px;">
+                            <div><strong>Total Running Load:</strong> <span style="font-size:18px; font-weight:700; color:#003087">${calc.totalRunning} W</span></div>
+                            <div><strong>Peak Load:</strong> <span style="font-size:18px; font-weight:700; color:#c2410f">${calc.totalPeak} W</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid">
+                        <div class="card">
+                            <div style="font-size:12px; color:#c2410f; font-weight:600;">RECOMMENDED INVERTER</div>
+                            <div class="metric">${calc.inverterVA} VA</div>
+                            <div style="margin-top:12px; font-size:13px; line-height:1.5;">
+                                Suitable for ${calc.backupHours} hours backup<br>
+                                Handles peak surge loads
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div style="font-size:12px; color:#166534; font-weight:600;">RECOMMENDED BATTERY</div>
+                            <div class="metric" style="color:#166534;">${calc.batteryAh} Ah</div>
+                            <div style="margin-top:12px; font-size:13px; line-height:1.5;">
+                                ${calc.systemVoltage}V system • ${calc.batteryType === 'lead' ? 'Tubular Lead Acid' : 'Lithium LiFePO4'}<br>
+                                ${calc.backupHours} hours backup duration
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="footer">
+                        This is an independent calculation tool. Results are approximate.<br>
+                        For final installation, consult a Luminous authorized dealer or electrician.<br>
+                        Generated on ${new Date().toLocaleString('en-IN')}
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            setTimeout(() => {
+                printWindow.print();
+            }, 450);
+        }
+        
+        function copySummary() {
+            if (!window.lastCalculation || selectedLoads.length === 0) {
+                alert("Add some appliances first!");
+                return;
+            }
+            
+            const calc = window.lastCalculation;
+            
+            let text = `LUMINOUS LOAD CALCULATOR SUMMARY\n`;
+            text += `Date: ${new Date().toLocaleDateString('en-IN')}\n\n`;
+            text += `TOTAL RUNNING LOAD: ${calc.totalRunning} Watts\n`;
+            text += `PEAK LOAD (with surge): ${calc.totalPeak} Watts\n`;
+            text += `BACKUP DURATION: ${calc.backupHours} hours\n\n`;
+            text += `RECOMMENDED INVERTER: ${calc.inverterVA} VA\n`;
+            text += `RECOMMENDED BATTERY: ${calc.batteryAh} Ah @ ${calc.systemVoltage}V (${calc.batteryType})\n\n`;
+            text += `Selected Appliances:\n`;
+            
+            selectedLoads.forEach(item => {
+                text += `- ${item.name} ×${item.qty} (${item.wattage}W each)\n`;
+            });
+            
+            text += `\nNote: This is an approximate calculation. Consult a professional for final sizing.`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = event.currentTarget ? event.currentTarget.innerHTML : '';
+                const btns = document.querySelectorAll('button');
+                
+                // Show toast
+                const toast = document.createElement('div');
+                toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#003087;color:white;padding:10px 22px;border-radius:9999px;font-size:13px;box-shadow:0 10px 10px rgb(0 0 0 / 0.1);';
+                toast.innerHTML = `✓ Summary copied to clipboard`;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.transition = 'all 0.3s';
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 2200);
+            }).catch(() => {
+                // Fallback
+                prompt("Copy this summary:", text);
+            });
+        }
+        
+        function loadSampleData() {
+            // Clear existing
+            selectedLoads = [];
+            
+            // Add a realistic Indian middle-class home sample
+            const sampleIds = [1, 3, 5, 7, 10, 11, 12, 13]; // LED bulbs, ceiling fan, AC, fridge, TV, laptop, router, pump
+            
+            sampleIds.forEach(id => {
+                const appData = applianceDatabase.find(a => a.id === id);
+                if (appData) {
+                    selectedLoads.push({
+                        ...appData,
+                        qty: appData.defaultQty,
+                        hoursPerDay: (id === 5 || id === 13) ? 3 : (id === 7 ? 24 : 5) // AC & pump less hours, fridge 24h
+                    });
+                }
+            });
+            
+            // Add one custom like geyser
+            selectedLoads.push({
+                id: Date.now(),
+                category: "Others",
+                name: "15L Geyser",
+                wattage: 2000,
+                qty: 1,
+                surgeFactor: 1.4,
+                hoursPerDay: 1.5,
+                isCustom: true
+            });
+            
+            renderLoadsTable();
+            updateTotals();
+            saveToLocalStorage();
+            
+            // Scroll to results
+            setTimeout(() => {
+                document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 400);
+        }
+        
+        function resetCalculator() {
+            if (!confirm("Reset everything? This will clear all added appliances.")) return;
+            
+            selectedLoads = [];
+            localStorage.removeItem('luminousLoadCalculator');
+            
+            renderLoadsTable();
+            updateTotals();
+            
+            // Reset results text
+            document.getElementById('recommended-inverter').innerHTML = '—';
+            document.getElementById('recommended-battery').innerHTML = '—';
+        }
+        
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('luminousLoadCalculator', JSON.stringify({
+                    loads: selectedLoads,
+                    backupHours: document.getElementById('backup-hours-input').value,
+                    batteryType: currentBatteryType
+                }));
+            } catch (e) {}
+        }
+        
+        function loadFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem('luminousLoadCalculator');
+                if (!saved) return;
+                
+                const data = JSON.parse(saved);
+                
+                if (data.loads && data.loads.length > 0) {
+                    selectedLoads = data.loads;
+                    renderLoadsTable();
+                    updateTotals();
+                }
+                
+                if (data.backupHours) {
+                    document.getElementById('backup-hours-input').value = data.backupHours;
+                    document.getElementById('backup-hours-slider').value = data.backupHours;
+                }
+                
+                if (data.batteryType) {
+                    selectBatteryType(data.batteryType, true);
+                }
+            } catch (e) {
+                console.log('Could not load saved data');
+            }
+        }
+        
+        // Keyboard shortcut hint
+        console.log('%c[Luminous Calculator] Tip: Press "?" to quickly add a custom appliance', 'color:#64748b');
+        
+        // Boot the app
+        window.onload = function() {
+            initializeApp();
+            
+            // Optional: Auto load sample on first visit (commented for production)
+            // setTimeout(() => { if (selectedLoads.length === 0) loadSampleData(); }, 1200);
+        };
+        
+        // Expose some functions for debugging/advanced use
+        window.LuminousCalc = {
+            addAppliance: (id) => addApplianceFromDatabase(id),
+            getCurrentLoads: () => selectedLoads,
+            recalculate: () => updateResults()
+        };
+    </script>
+</body>
+</html>
